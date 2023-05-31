@@ -1,7 +1,4 @@
 import pikepdf
-import os
-
-
 
 # Color
 B = '\033[1m'
@@ -37,50 +34,37 @@ print("["+B+R+"#"+N+"] "+B+R+"The Red Eagle 123"+N+"   PdfCracker - "+B+R+"The R
 
 
 def crack_pdf_password(pdf_file, wordlist):
-  """Cracks the password of a PDF file using a wordlist.
+    """Cracks the password of a PDF file using a wordlist."""
+    with open(pdf_file, "rb") as pdf_file:
+        pdf = pikepdf.Pdf.open(pdf_file)
 
-  Args:
-    pdf_file: The path to the PDF file.
-    wordlist: The path to the wordlist file.
+    password_hash = pdf.get_password_hash()
 
-  Returns:
-    The password of the PDF file, or None if the password could not be cracked.
-  """
+    for word in wordlist:
+        try:
+            pdf.decrypt(word.strip())
+            return word.strip()
+        except pikepdf.PasswordError:
+            pass
 
-  # Load the PDF file.
-  with open(pdf_file, "rb") as pdf_file:
-    pdf = pikepdf.Pdf.open(pdf_file)
-
-  # Get the password hash.
-  password_hash = pdf.get_password_hash()
-
-  # Iterate over the words in the wordlist.
-  for word in wordlist:
-    # Try to decrypt the PDF file with the current word.
-    try:
-      pdf.decrypt(word)
-      return word
-    except pikepdf.PasswordError:
-      pass
-
-  # The password could not be cracked.
-  return None
+    return None
 
 
 def main():
-  # Get the path to the PDF file and the wordlist file.
-  pdf_file = input("Enter the path to the PDF file: ")
-  wordlist_file = input("Enter the path to the wordlist file: ")
+    print("PDF Password Cracker")
+    pdf_file = input("Enter the path to the PDF file: ")
+    wordlist_file = input("Enter the path to the wordlist file: ")
 
-  # Crack the password of the PDF file.
-  password = crack_pdf_password(pdf_file, wordlist_file)
+    with open(wordlist_file, "rt") as wordlist:
+        wordlist_lines = wordlist.readlines()
 
-  # Print the password.
-  if password is not None:
-    print("The password is:", password)
-  else:
-    print("The password could not be cracked.")
+    password = crack_pdf_password(pdf_file, wordlist_lines)
+
+    if password is not None:
+        print("The password is:", password)
+    else:
+        print("The password could not be cracked.")
 
 
 if __name__ == "__main__":
-  main()
+    main()
